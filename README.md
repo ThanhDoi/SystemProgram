@@ -22,7 +22,7 @@ To view kernel's logfile, run:
 
 After running, run this command with su permission:
 ```
-1. rmmod printerDrive
+1. rmmod printerDriver
 ```
 
 ## Author
