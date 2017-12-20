@@ -15,9 +15,14 @@ Follow these steps:
 3. sudo ./testPrinterDriver
 ```
 
-To view logfile, follow:
+To view kernel's logfile, run:
 ```
 1. dmesg | tail -20
+```
+
+After running, run this command with su permission:
+```
+1. rmmod printerDrive
 ```
 
 ## Author
