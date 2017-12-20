@@ -15,5 +15,10 @@ Follow these steps:
 3. sudo ./testPrinterDriver
 ```
 
+To view logfile, follow:
+```
+1. dmesg | tail -20
+```
+
 ## Author
 Doi Khac Thanh
