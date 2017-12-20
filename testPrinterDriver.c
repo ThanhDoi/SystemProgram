@@ -5,25 +5,25 @@
 #include <string.h>
 #include <unistd.h>
 
-#define BUFFER_LENGTH 256
-static char receive[BUFFER_LENGTH];
+#define STRING_LENGTH 256
+static char receive[STRING_LENGTH]; // The receive buffer from the LKM
 
 int printText(char stringToSend[]) {
 	int fd, ret;
-	fd = open("/dev/printerDevice", O_RDWR);
+	fd = open("/dev/printerDevice", O_RDWR); // Open the device with read/write access
 	if (fd < 0) {
 		perror("Failed to open the device...");
 		return errno;
 	}
 
-	ret = write(fd, stringToSend, strlen(stringToSend));
+	ret = write(fd, stringToSend, strlen(stringToSend)); // Send the string to the LKM
 
 	if (ret < 0) {
 		perror("Failed to print1!");
 		close(fd);
 		return 0;
 	} else {
-		if (read(fd, receive, BUFFER_LENGTH) < 0) {
+		if (read(fd, receive, STRING_LENGTH) < 0) { // Read in a string (with spaces)
 			perror("Failed to print2!");
 			close(fd);
 			return 0;
@@ -31,14 +31,14 @@ int printText(char stringToSend[]) {
 	}
 
 	close(fd);
-	if (strcmp(receive, stringToSend) == 0) {
+	if (strcmp(receive, stringToSend) == 0) { // Check write result
 		return 1;
 	}
 }
 
 int main() {
 	int ret, fd, x;
-	char stringToSend[BUFFER_LENGTH], fileName[256], buff[BUFFER_LENGTH];
+	char stringToSend[STRING_LENGTH], fileName[STRING_LENGTH], buff[STRING_LENGTH];
 	FILE *f;
 
 	printf("\nStarting device test code example...");
@@ -61,7 +61,7 @@ int main() {
 			} else {
 				printf("Printing...\n");
 				while (!feof(f)) {
-					fgets(buff, BUFFER_LENGTH, f);
+					fgets(buff, STRING_LENGTH, f);
 					if (!feof(f)) {
 						buff[strlen(buff)-1] = '\0';
 					} else {

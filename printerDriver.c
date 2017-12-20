@@ -19,9 +19,10 @@ MODULE_VERSION("1.0");
 static dev_t first; // Global variable for the first device number
 static struct cdev c_dev; // Global variable for the character device structure
 static struct class *cl; // Global variable for the device class
-static char pd_buffer[256];
-static ssize_t buffer_size;
+static char pd_buffer[256]; // Memory for the string that is passed from userspace
+static ssize_t buffer_size; // Used to remember the size of the string stored
 
+/* The prototype functions for the character driver -- must come before the struct definition */
 static int pd_open(struct inode *, struct file *);
 static int pd_close(struct inode *, struct file *);
 static ssize_t pd_read(struct file *, char __user *, size_t, loff_t *);
@@ -50,18 +51,22 @@ static int pd_close(struct inode *i, struct file *f) {
 static ssize_t pd_read(struct file *f, char __user *buf, size_t len, loff_t *off) {
 	printk(KERN_INFO "Read()\n");
 	buffer_size = sizeof(pd_buffer);
+
+	/* If position is behind the end of a file we have nothing to read */
 	if (*off >= buffer_size) {
 		return 0;
 	}
-
+	/* If a user tries to read more than we have, read only as many bytes as we have */
 	if (*off + len > buffer_size) {
 		len = buffer_size - *off;
 	}
 
+	/* Get data from pd_buffer */
 	if (copy_to_user(buf, pd_buffer + *off, len) != 0)  {
 		return -EFAULT;
 	}
 
+	/* Move reading position */
 	*off += len;
 	return len;
 }
@@ -81,17 +86,21 @@ static ssize_t pd_write(struct file *f, const char __user *buf, size_t len, loff
 /* Constructor */
 static int __init pd_init(void) {
 	printk(KERN_INFO "Hello: printer driver registered\n");
+
+	/*Try to dynamically allocate a major number for the device */
 	if (alloc_chrdev_region(&first, 0, 1, "printerDevice") < 0) {
 		printk(KERN_ALERT "Failed to register a major number!\n");
 		return -1;
 	}
 
+	/* Register the device class */
 	if ((cl = class_create(THIS_MODULE, "chardrv")) == NULL) {
 		unregister_chrdev_region(first, 1);
 		printk(KERN_ALERT "Failed to register device class!\n");
 		return -1;
 	}
 
+	/* Register the device driver */
 	if (device_create(cl, NULL, first, NULL, "printerDevice") == NULL) {
 		class_destroy(cl);
 		unregister_chrdev_region(first, 1);
@@ -99,6 +108,7 @@ static int __init pd_init(void) {
 		return -1;
 	}
 
+	/* Initialize a cdev structure */
 	cdev_init(&c_dev, &pugs_fops);
 	if (cdev_add(&c_dev, first, 1) == -1) {
 		device_destroy(cl, first);
