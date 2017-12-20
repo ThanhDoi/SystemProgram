@@ -9,3 +9,4 @@ default:
 
 clean:
 	$(MAKE) -C $(KDIR) M=$(PWD) clean
+	rm testPrinterDriver
